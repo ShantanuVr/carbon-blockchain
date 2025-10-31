@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { ChainService } from './chain.service';
+import { ethers } from 'ethers';
 
 /**
  * Registry Adapter Service
@@ -19,6 +20,11 @@ export class RegistryAdapterService {
    * This bridges the registry (credit class creation) to blockchain (token minting)
    */
   async mintOnFinalize(classId: string, orgWalletAddress: string) {
+    // Validate wallet address
+    if (orgWalletAddress && !ethers.isAddress(orgWalletAddress)) {
+      throw new Error(`Invalid Ethereum address: ${orgWalletAddress}`);
+    }
+
     const creditClass = await this.prisma.creditClass.findUnique({
       where: { id: classId },
       include: { project: { include: { org: true } } },
@@ -32,10 +38,17 @@ export class RegistryAdapterService {
       throw new Error('Credit class already minted on-chain');
     }
 
+    const walletAddress = orgWalletAddress || process.env.DEFAULT_MINT_ADDRESS || '0x0000000000000000000000000000000000000000';
+    
+    // Validate default address too
+    if (!ethers.isAddress(walletAddress)) {
+      throw new Error(`Invalid default mint address: ${walletAddress}`);
+    }
+
     // Mint tokens on blockchain
     const { txHash, tokenId } = await this.chainService.mint(
       classId,
-      orgWalletAddress || process.env.DEFAULT_MINT_ADDRESS || '0x0000000000000000000000000000000000000000',
+      walletAddress,
       creditClass.quantity,
     );
 
@@ -79,6 +92,14 @@ export class RegistryAdapterService {
     fromWallet: string,
     toWallet: string,
   ) {
+    // Validate wallet addresses
+    if (!ethers.isAddress(fromWallet)) {
+      throw new Error(`Invalid from wallet address: ${fromWallet}`);
+    }
+    if (!ethers.isAddress(toWallet)) {
+      throw new Error(`Invalid to wallet address: ${toWallet}`);
+    }
+
     const transfer = await this.prisma.transfer.findUnique({
       where: { id: transferId },
       include: { class: true },
@@ -116,6 +137,11 @@ export class RegistryAdapterService {
     retirementId: string,
     walletAddress: string,
   ) {
+    // Validate wallet address
+    if (!ethers.isAddress(walletAddress)) {
+      throw new Error(`Invalid wallet address: ${walletAddress}`);
+    }
+
     const retirement = await this.prisma.retirement.findUnique({
       where: { id: retirementId },
       include: { class: true },
@@ -159,6 +185,14 @@ export class RegistryAdapterService {
       include: { project: { include: { org: true } } },
     });
 
+    if (!creditClass) {
+      throw new Error(`Credit class ${classId} not found for certificate generation`);
+    }
+
+    if (!creditClass.project) {
+      throw new Error(`Project not found for credit class ${classId}`);
+    }
+
     return {
       type: 'MINT',
       certificateId: `MINT-${classId.slice(-12).toUpperCase()}`,
@@ -166,13 +200,13 @@ export class RegistryAdapterService {
       classId,
       tokenId,
       project: {
-        code: creditClass?.project.code,
-        type: creditClass?.project.type,
+        code: creditClass.project.code,
+        type: creditClass.project.type,
       },
-      quantity: creditClass?.quantity,
+      quantity: creditClass.quantity,
       serialRange: {
-        start: creditClass?.serialBase,
-        end: creditClass?.serialTop,
+        start: creditClass.serialBase,
+        end: creditClass.serialTop,
       },
       blockchain: {
         txHash,
@@ -194,24 +228,36 @@ export class RegistryAdapterService {
       },
     });
 
+    if (!transfer) {
+      throw new Error(`Transfer ${transferId} not found for certificate generation`);
+    }
+
+    if (!transfer.fromOrg || !transfer.toOrg) {
+      throw new Error(`Organization data missing for transfer ${transferId}`);
+    }
+
+    if (!transfer.class || !transfer.class.project) {
+      throw new Error(`Class or project data missing for transfer ${transferId}`);
+    }
+
     return {
       type: 'TRANSFER',
       certificateId: `XFER-${transferId.slice(-12).toUpperCase()}`,
       timestamp: new Date().toISOString(),
       transferId,
       from: {
-        orgId: transfer?.fromOrgId,
-        orgName: transfer?.fromOrg.name,
+        orgId: transfer.fromOrgId,
+        orgName: transfer.fromOrg.name,
       },
       to: {
-        orgId: transfer?.toOrgId,
-        orgName: transfer?.toOrg.name,
+        orgId: transfer.toOrgId,
+        orgName: transfer.toOrg.name,
       },
       class: {
-        id: transfer?.classId,
-        projectCode: transfer?.class.project.code,
+        id: transfer.classId,
+        projectCode: transfer.class.project.code,
       },
-      quantity: transfer?.quantity,
+      quantity: transfer.quantity,
       blockchain: {
         txHash,
         chainId: parseInt(process.env.CHAIN_ID || '31337'),
