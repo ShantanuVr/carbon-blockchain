@@ -43,9 +43,9 @@ export class RetirementsService {
     const certificateId = `CERT-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
     // Use transaction to ensure atomicity
-    return await this.prisma.$transaction(async (tx) => {
+    const retirement = await this.prisma.$transaction(async (tx) => {
       // Create retirement
-      const retirement = await tx.retirement.create({
+      const retirementRecord = await tx.retirement.create({
         data: {
           orgId: dto.orgId,
           classId: dto.classId,
@@ -73,7 +73,10 @@ export class RetirementsService {
         throw new Error('Retirement would result in negative holdings');
       }
 
-    // Burn tokens on-chain if wallet address provided
+      return retirementRecord;
+    });
+
+    // Burn tokens on-chain if wallet address provided (outside transaction)
     if (dto.walletAddress) {
       try {
         const result = await this.registryAdapter.burnOnRetirement(
@@ -109,4 +112,3 @@ export class RetirementsService {
     });
   }
 }
-
