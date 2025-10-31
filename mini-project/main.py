@@ -1,11 +1,11 @@
 # main.py - Carbon Credits Blockchain API
 
 from uuid import uuid4
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from blockchain import Blockchain
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 CORS(app)  # Enable CORS for all routes
 node_identifier = str(uuid4()).replace('-', '')
 
@@ -15,12 +15,18 @@ blockchain = Blockchain()
 
 @app.route('/', methods=['GET'])
 def index():
+    return render_template('index.html')
+
+
+@app.route('/api', methods=['GET'])
+def api_info():
     return jsonify({
         'message': 'Carbon Credits Blockchain API',
         'endpoints': {
             '/validate': 'POST - Validate a block and add transactions to chain',
             '/issue': 'POST - Issue new carbon credits from a project',
             '/transfer': 'POST - Transfer carbon credits between parties',
+            '/retire': 'POST - Retire (burn) carbon credits permanently',
             '/chain': 'GET - Get full blockchain',
             '/chain/length': 'GET - Get blockchain length',
             '/stats': 'GET - Get blockchain statistics'
@@ -129,6 +135,43 @@ def transfer_credits():
     }), 201
 
 
+@app.route('/retire', methods=['POST'])
+def retire_credits():
+    """
+    Retire (burn) carbon credits permanently.
+    Required: owner, credits
+    Optional: reason
+    """
+    values = request.get_json()
+    required = ['owner', 'credits']
+    
+    if not all(k in values for k in required):
+        return jsonify({
+            'error': 'Missing required values',
+            'required': required
+        }), 400
+
+    if values['credits'] <= 0:
+        return jsonify({
+            'error': 'Credits must be greater than 0'
+        }), 400
+
+    # Retire (burn) the carbon credits
+    index = blockchain.retire_credits(
+        owner=values['owner'],
+        credits=values['credits'],
+        reason=values.get('reason')
+    )
+    
+    return jsonify({
+        'message': f'Carbon credits retired (burned) and scheduled for Block No. {index}',
+        'owner': values['owner'],
+        'credits': values['credits'],
+        'reason': values.get('reason'),
+        'block_index': index
+    }), 201
+
+
 @app.route('/chain', methods=['GET'])
 def full_chain():
     """Get the full blockchain"""
@@ -171,4 +214,4 @@ def get_stats():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)

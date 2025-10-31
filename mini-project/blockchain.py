@@ -68,6 +68,20 @@ class Blockchain(object):
             description=description or f"Issued {credits} carbon credits from {project_type} project"
         )
 
+    def retire_credits(self, owner, credits, reason=None):
+        # Retire (burn) carbon credits permanently
+        # This transfers credits to a burn address, effectively removing them from circulation
+        # Credits are permanently removed and cannot be reused
+        burn_address = "BURN"
+        description = f"RETIRED: {credits} carbon credits burned" + (f" - {reason}" if reason else "")
+        return self.new_transaction(
+            sender=owner,
+            recipient=burn_address,
+            credits=credits,
+            project_type="retirement",
+            description=description
+        )
+
     @staticmethod
     def hash(block):
         # Used for hashing a block

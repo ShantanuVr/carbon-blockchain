@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Credits Blockchain</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .action-card h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .retire-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .chain-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .chain-section h3 {
+            margin-bottom: 20px;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .block {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .transaction {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid #28a745;
+        }
+
+        .transaction.retired {
+            border-left-color: #dc3545;
+            opacity: 0.8;
+        }
+
+        .transaction.issued {
+            border-left-color: #17a2b8;
+        }
+
+        .message {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .refresh-btn {
+            background: #28a745;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌿 Carbon Credits Blockchain</h1>
+            <p class="subtitle">Track, Issue, Transfer & Retire Carbon Credits</p>
+        </header>
+
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-card">
+                <div class="stat-value" id="totalBlocks">-</div>
+                <div class="stat-label">Total Blocks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCredits">-</div>
+                <div class="stat-label">Credits Issued</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalTransactions">-</div>
+                <div class="stat-label">Transactions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingTransactions">-</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+
+        <div class="actions-grid">
+            <div class="action-card">
+                <h3>Issue Credits</h3>
+                <div id="issueMessage"></div>
+                <div class="form-group">
+                    <label>Recipient</label>
+                    <input type="text" id="issueRecipient" placeholder="e.g., green_energy_corp">
+                </div>
+                <div class="form-group">
+                    <label>Credits (tonnes CO2e)</label>
+                    <input type="number" id="issueCredits" placeholder="500" min="0.01" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Project Type</label>
+                    <select id="issueProjectType">
+                        <option value="renewable_energy">Renewable Energy</option>
+                        <option value="reforestation">Reforestation</option>
+                        <option value="carbon_capture">Carbon Capture</option>
+                        <option value="energy_efficiency">Energy Efficiency</option>
+                        <option value="waste_management">Waste Management</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description (optional)</label>
+                    <textarea id="issueDescription" rows="2" placeholder="Project description"></textarea>
+                </div>
+                <button onclick="issueCredits()">Issue Credits</button>
+            </div>
+
+            <div class="action-card">
+                <h3>Transfer Credits</h3>
+                <div id="transferMessage"></div>
+                <div class="form-group">
+                    <label>Sender</label>
+                    <input type="text" id="transferSender" placeholder="e.g., green_energy_corp">
+                </div>
+                <div class="form-group">
+                    <label>Recipient</label>
+                    <input type="text" id="transferRecipient" placeholder="e.g., eco_retailer">
+                </div>
+                <div class="form-group">
+                    <label>Credits (tonnes CO2e)</label>
+                    <input type="number" id="transferCredits" placeholder="100" min="0.01" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Description (optional)</label>
+                    <textarea id="transferDescription" rows="2" placeholder="Transaction description"></textarea>
+                </div>
+                <button onclick="transferCredits()">Transfer Credits</button>
+            </div>
+
+            <div class="action-card">
+                <h3>Retire Credits</h3>
+                <div id="retireMessage"></div>
+                <div class="form-group">
+                    <label>Owner</label>
+                    <input type="text" id="retireOwner" placeholder="e.g., eco_retailer">
+                </div>
+                <div class="form-group">
+                    <label>Credits to Retire (tonnes CO2e)</label>
+                    <input type="number" id="retireCredits" placeholder="50" min="0.01" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea id="retireReason" rows="2" placeholder="e.g., Offset 2024 company emissions"></textarea>
+                </div>
+                <button class="retire-btn" onclick="retireCredits()">Retire (Burn) Credits</button>
+            </div>
+        </div>
+
+        <div class="actions-grid">
+            <div class="action-card">
+                <h3>Blockchain Actions</h3>
+                <button class="refresh-btn" onclick="loadChain()">🔄 Refresh Blockchain</button>
+                <button onclick="validateBlock()">⛏️ Validate Block (Mine)</button>
+            </div>
+        </div>
+
+        <div class="chain-section">
+            <h3>Blockchain</h3>
+            <div id="chainDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5001';
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/stats`);
+                const data = await response.json();
+                
+                document.getElementById('totalBlocks').textContent = data.total_blocks || 0;
+                document.getElementById('totalCredits').textContent = data.total_credits_issued || 0;
+                document.getElementById('totalTransactions').textContent = data.total_transactions || 0;
+                document.getElementById('pendingTransactions').textContent = data.pending_transactions || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadChain() {
+            try {
+                const response = await fetch(`${API_URL}/chain`);
+                const data = await response.json();
+                
+                const chainDisplay = document.getElementById('chainDisplay');
+                chainDisplay.innerHTML = '';
+                
+                data.chain.forEach((block, index) => {
+                    const blockDiv = document.createElement('div');
+                    blockDiv.className = 'block';
+                    
+                    const blockHeader = document.createElement('div');
+                    blockHeader.className = 'block-header';
+                    blockHeader.innerHTML = `
+                        <span>Block #${block.index}</span>
+                        <span>Proof: ${block.proof}</span>
+                    `;
+                    blockDiv.appendChild(blockHeader);
+                    
+                    const transactionsDiv = document.createElement('div');
+                    block.transactions.forEach(transaction => {
+                        const txDiv = document.createElement('div');
+                        const txType = transaction.sender === '0' ? 'issued' : 
+                                      transaction.description?.toLowerCase().includes('retired') ? 'retired' : 'transfer';
+                        txDiv.className = `transaction ${txType}`;
+                        
+                        let txContent = '';
+                        if (transaction.sender === '0') {
+                            txContent = `
+                                <strong>🆕 ISSUED:</strong> ${transaction.credits} credits to ${transaction.recipient}<br>
+                                <small>Project: ${transaction.project_type || 'N/A'}</small><br>
+                                <small>${transaction.description || ''}</small>
+                            `;
+                        } else if (txType === 'retired') {
+                            txContent = `
+                                <strong>🔥 RETIRED:</strong> ${transaction.credits} credits from ${transaction.sender}<br>
+                                <small>${transaction.description || ''}</small>
+                            `;
+                        } else {
+                            txContent = `
+                                <strong>💱 TRANSFER:</strong> ${transaction.credits} credits<br>
+                                From: ${transaction.sender} → To: ${transaction.recipient}<br>
+                                <small>${transaction.description || ''}</small>
+                            `;
+                        }
+                        txDiv.innerHTML = txContent;
+                        transactionsDiv.appendChild(txDiv);
+                    });
+                    
+                    if (block.transactions.length === 0) {
+                        const emptyTx = document.createElement('div');
+                        emptyTx.className = 'transaction';
+                        emptyTx.textContent = 'Genesis Block';
+                        transactionsDiv.appendChild(emptyTx);
+                    }
+                    
+                    blockDiv.appendChild(transactionsDiv);
+                    
+                    const hashDiv = document.createElement('div');
+                    hashDiv.style.marginTop = '10px';
+                    hashDiv.style.fontSize = '12px';
+                    hashDiv.style.color = '#666';
+                    hashDiv.textContent = `Hash: ${block.previous_hash || 'N/A'}`;
+                    blockDiv.appendChild(hashDiv);
+                    
+                    chainDisplay.appendChild(blockDiv);
+                });
+            } catch (error) {
+                console.error('Error loading chain:', error);
+                showMessage('chainMessage', 'Error loading blockchain', 'error');
+            }
+        }
+
+        async function issueCredits() {
+            const recipient = document.getElementById('issueRecipient').value;
+            const credits = parseFloat(document.getElementById('issueCredits').value);
+            const projectType = document.getElementById('issueProjectType').value;
+            const description = document.getElementById('issueDescription').value;
+
+            if (!recipient || !credits || credits <= 0) {
+                showMessage('issueMessage', 'Please fill all required fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/issue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipient, credits, project_type: projectType, description })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage('issueMessage', data.message, 'success');
+                    document.getElementById('issueRecipient').value = '';
+                    document.getElementById('issueCredits').value = '';
+                    document.getElementById('issueDescription').value = '';
+                    setTimeout(() => { loadStats(); loadChain(); }, 500);
+                } else {
+                    showMessage('issueMessage', data.error || 'Error issuing credits', 'error');
+                }
+            } catch (error) {
+                showMessage('issueMessage', 'Error connecting to server', 'error');
+            }
+        }
+
+        async function transferCredits() {
+            const sender = document.getElementById('transferSender').value;
+            const recipient = document.getElementById('transferRecipient').value;
+            const credits = parseFloat(document.getElementById('transferCredits').value);
+            const description = document.getElementById('transferDescription').value;
+
+            if (!sender || !recipient || !credits || credits <= 0) {
+                showMessage('transferMessage', 'Please fill all required fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/transfer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sender, recipient, credits, description })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage('transferMessage', data.message, 'success');
+                    document.getElementById('transferSender').value = '';
+                    document.getElementById('transferRecipient').value = '';
+                    document.getElementById('transferCredits').value = '';
+                    document.getElementById('transferDescription').value = '';
+                    setTimeout(() => { loadStats(); loadChain(); }, 500);
+                } else {
+                    showMessage('transferMessage', data.error || 'Error transferring credits', 'error');
+                }
+            } catch (error) {
+                showMessage('transferMessage', 'Error connecting to server', 'error');
+            }
+        }
+
+        async function retireCredits() {
+            const owner = document.getElementById('retireOwner').value;
+            const credits = parseFloat(document.getElementById('retireCredits').value);
+            const reason = document.getElementById('retireReason').value;
+
+            if (!owner || !credits || credits <= 0) {
+                showMessage('retireMessage', 'Please fill all required fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/retire`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ owner, credits, reason })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage('retireMessage', data.message, 'success');
+                    document.getElementById('retireOwner').value = '';
+                    document.getElementById('retireCredits').value = '';
+                    document.getElementById('retireReason').value = '';
+                    setTimeout(() => { loadStats(); loadChain(); }, 500);
+                } else {
+                    showMessage('retireMessage', data.error || 'Error retiring credits', 'error');
+                }
+            } catch (error) {
+                showMessage('retireMessage', 'Error connecting to server', 'error');
+            }
+        }
+
+        async function validateBlock() {
+            try {
+                const response = await fetch(`${API_URL}/validate`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert(`Block validated!\nProof: ${data.proof}\nTransactions: ${data.transactions.length}`);
+                    loadStats();
+                    loadChain();
+                } else {
+                    alert('Error validating block');
+                }
+            } catch (error) {
+                alert('Error connecting to server');
+            }
+        }
+
+        function showMessage(elementId, message, type) {
+            const msgElement = document.getElementById(elementId);
+            msgElement.textContent = message;
+            msgElement.className = `message ${type}`;
+            setTimeout(() => {
+                msgElement.className = 'message';
+            }, 5000);
+        }
+
+        // Load data on page load
+        loadStats();
+        loadChain();
+        setInterval(() => {
+            loadStats();
+            loadChain();
+        }, 10000); // Auto-refresh every 10 seconds
+    </script>
+</body>
+</html>
