@@ -280,26 +280,38 @@ export class RegistryAdapterService {
       },
     });
 
+    if (!retirement) {
+      throw new Error(`Retirement ${retirementId} not found for certificate generation`);
+    }
+
+    if (!retirement.org) {
+      throw new Error(`Organization data missing for retirement ${retirementId}`);
+    }
+
+    if (!retirement.class || !retirement.class.project) {
+      throw new Error(`Class or project data missing for retirement ${retirementId}`);
+    }
+
     return {
       type: 'RETIREMENT',
-      certificateId: retirement?.certificateId,
-      timestamp: retirement?.createdAt.toISOString(),
+      certificateId: retirement.certificateId,
+      timestamp: retirement.createdAt.toISOString(),
       retirementId,
       org: {
-        id: retirement?.orgId,
-        name: retirement?.org.name,
+        id: retirement.orgId,
+        name: retirement.org.name,
       },
       class: {
-        id: retirement?.classId,
-        projectCode: retirement?.class.project.code,
+        id: retirement.classId,
+        projectCode: retirement.class.project.code,
       },
-      quantity: retirement?.quantity,
+      quantity: retirement.quantity,
       serialRange: {
-        start: retirement?.serialStart,
-        end: retirement?.serialEnd,
+        start: retirement.serialStart,
+        end: retirement.serialEnd,
       },
-      purposeHash: retirement?.purposeHash,
-      beneficiaryHash: retirement?.beneficiaryHash,
+      purposeHash: retirement.purposeHash,
+      beneficiaryHash: retirement.beneficiaryHash,
       blockchain: {
         burnTxHash: txHash,
         chainId: parseInt(process.env.CHAIN_ID || '31337'),
