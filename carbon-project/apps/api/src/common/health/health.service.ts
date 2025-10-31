@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../common/prisma.service';
 import * as fs from 'fs';
 import { ethers } from 'ethers';
 
