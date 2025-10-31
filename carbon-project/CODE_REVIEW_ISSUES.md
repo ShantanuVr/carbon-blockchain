@@ -40,23 +40,23 @@
 
 ## Medium Priority Issues
 
-### 7. ⚠️ Missing Wallet Address Validation
+### 7. ✅ Fixed - Missing Wallet Address Validation
 **Location**: `apps/api/src/chain/registry-adapter.service.ts`, `apps/api/src/transfers/transfers.service.ts`
 - **Issue**: No validation that wallet addresses are valid Ethereum addresses
 - **Impact**: Could cause blockchain transaction failures
-- **Fix**: Add ethers.js address validation
+- **Status**: ✅ FIXED - Added `ethers.isAddress()` validation in `mintOnFinalize()`, `transferOnChain()`, and `burnOnRetirement()`
 
-### 8. ⚠️ Missing Quantity Validation After Updates
+### 8. ✅ Fixed - Missing Quantity Validation After Updates
 **Location**: `apps/api/src/transfers/transfers.service.ts:25-35`
 - **Issue**: Holdings can go negative after decrement (no check after update)
 - **Impact**: Negative holdings in database
-- **Fix**: Add check that holdings remain non-negative
+- **Status**: ✅ FIXED - Added negative holdings check after updates in transactions
 
-### 9. ⚠️ Missing Error Handling in Certificate Generation
+### 9. ✅ Fixed - Missing Error Handling in Certificate Generation
 **Location**: `apps/api/src/chain/registry-adapter.service.ts`
 - **Issue**: Certificate generation methods don't handle errors if data is missing
 - **Impact**: Could throw unhandled errors
-- **Fix**: Add null checks and error handling
+- **Status**: ✅ FIXED - Added comprehensive null checks and error messages in all certificate generation methods
 
 ### 10. ⚠️ Route Order Issue
 **Location**: `apps/api/src/classes/classes.controller.ts`
@@ -78,11 +78,11 @@
 - **Impact**: Invalid data could reach services
 - **Fix**: Add validation pipes and DTO decorators
 
-### 13. ℹ️ Missing Authorization Checks
+### 13. ✅ Fixed - Missing Authorization Checks
 **Location**: All controllers
 - **Issue**: No checks that user's org matches the orgId in requests
 - **Impact**: Users could potentially act on behalf of other orgs
-- **Fix**: Add org-level authorization checks
+- **Status**: ✅ FIXED - Created `OrgAuthGuard` and `RequireOrgAuth` decorator. Applied to transfers and retirements. Admin users can act on behalf of any org.
 
 ### 14. ℹ️ Missing Pagination
 **Location**: `findAll()` methods in services
