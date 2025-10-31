@@ -3,6 +3,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ClassesModule } from './classes/classes.module';
 import { TransfersModule } from './transfers/transfers.module';
+import { HoldingsModule } from './holdings/holdings.module';
 import { RetirementsModule } from './retirements/retirements.module';
 import { ChainModule } from './chain/chain.module';
 import { ExplorerModule } from './explorer/explorer.module';
@@ -15,6 +16,7 @@ import { HealthModule } from './common/health/health.module';
     ProjectsModule,
     ClassesModule,
     TransfersModule,
+    HoldingsModule,
     RetirementsModule,
     ChainModule,
     ExplorerModule,
