@@ -1,0 +1,347 @@
+Classroom Prompt — Carbon Credit Demo (Fresh Start, 1 UI + 1 API, No Docker)
+
+Role & Goal
+You are the Dev Architect building a lightweight, classroom-friendly demo that shows the complete carbon credit workflow with **one UI service** and **one API service**, running locally without Docker. The system must demonstrate:
+• Credits lane (Registry): project → evidence → issuance → transfer (“purchase”) → retirement (certificate)
+• Token lane (Blockchain): mint/burn tokens representing credits (optional but included)
+• Evidence lane (IoT + anchoring): daily digest hash anchored on-chain (optional but included)
+• One “Service Hub” page in the UI that lets students navigate all features from a single server
+
+Keep performance minimal. Target a Mac/Linux/WSL2 laptop. Everything runs locally: API (Node), UI (Next.js), DB (Postgres), chain (Anvil via Foundry), evidence storage (filesystem; optional IPFS daemon), simple file-based config, and TypeScript throughout.
+
+========================================
+0) Architecture (1 UI + 1 API)
+========================================
+• UI: Next.js (App Router) + TypeScript + Tailwind + shadcn/ui; runs at http://localhost:3000
+• API: Node 20 + NestJS (or Express + Zod) + TypeScript; runs at http://localhost:4000
+• DB: Postgres (local), Prisma ORM
+• Chain: Anvil (Foundry) local at http://127.0.0.1:8545
+• IPFS (optional): Kubo daemon at 127.0.0.1:5001; else store evidence on filesystem
+• File storage: local ./var/evidence for binary artifacts (plus sha256 content-addressing)
+• Single .env file per service
+• No Docker
+
+Key principle: **Domain separation in code**, not in processes
+• Credits = Registry (authority: off-chain)
+• Tokens = Blockchain representation (authority: chain)
+• Evidence = Integrity (artifact hashes & optional IPFS; on-chain anchors via EvidenceAnchor)
+
+========================================
+1) Repository Layout
+========================================
+carbon-classroom/
+  apps/
+    ui/                      # Next.js 15
+    api/                     # NestJS (or Express)
+  packages/
+    shared-types/            # DTOs: Credit/Token/Evidence (zod)
+    carbon-conversion-lib/   # kWh → tCO2e helpers
+  contracts/                 # Foundry project (CarbonCredit1155, EvidenceAnchor)
+  scripts/                   # bootstrap, seed, smoke, urls, helpers
+  prisma/                    # schema.prisma + migrations
+  var/                       # evidence files, generated cert PDFs, temp
+  .env.example               # root sample
+  README.md
+
+========================================
+2) Data Model (Prisma Sketch)
+========================================
+model Org {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  role        OrgRole  // "ADMIN" | "ISSUER" | "VERIFIER" | "BUYER"
+  users       User[]
+  holdings    Holding[]
+  retirements Retirement[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id        String @id @default(cuid())
+  email     String @unique
+  password  String // hashed
+  orgId     String
+  org       Org    @relation(fields:[orgId], references:[id])
+  role      UserRole // "ADMIN" | "ORG_ADMIN" | "READ"
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  code        String   @unique // e.g., "PRJ-WIND-001"
+  type        String   // "WIND" | "SOLAR" | ...
+  orgId       String
+  org         Org      @relation(fields:[orgId], references:[id])
+  metadata    Json
+  evidence    EvidenceArtifact[]
+  classes     CreditClass[]
+  createdAt   DateTime @default(now())
+}
+
+model EvidenceArtifact {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields:[projectId], references:[id])
+  sha256     String   @unique
+  bytes      Int
+  uri        String   // local path or ipfs://
+  createdAt  DateTime @default(now())
+}
+
+model CreditClass {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields:[projectId], references:[id])
+  vintage    Int      // e.g., 2024
+  quantity   Int      // total issued
+  serialBase Int      // start serial (e.g., 1)
+  serialTop  Int      // end serial   (e.g., 10000)
+  tokenId    Int?     // mapped tokenId (on-chain representation)
+  createdAt  DateTime @default(now())
+}
+
+model Holding {
+  id         String   @id @default(cuid())
+  orgId      String
+  org        Org      @relation(fields:[orgId], references:[id])
+  classId    String
+  class      CreditClass @relation(fields:[classId], references:[id])
+  quantity   Int      // current available credits
+  updatedAt  DateTime @updatedAt
+}
+
+model Transfer {
+  id         String   @id @default(cuid())
+  fromOrgId  String
+  toOrgId    String
+  classId    String
+  quantity   Int
+  createdAt  DateTime @default(now())
+}
+
+model Retirement {
+  id             String   @id @default(cuid())
+  orgId          String
+  classId        String
+  quantity       Int
+  serialStart    Int
+  serialEnd      Int
+  purposeHash    String
+  beneficiaryHash String
+  certificateId  String   @unique
+  chainBurnTx    String?  // optional link if token burn is performed
+  createdAt      DateTime @default(now())
+}
+
+model TokenMint {
+  id        String @id @default(cuid())
+  classId   String
+  tokenId   Int
+  txHash    String
+  chainId   Int
+  createdAt DateTime @default(now())
+}
+
+enum OrgRole { ADMIN ISSUER VERIFIER BUYER }
+enum UserRole { ADMIN ORG_ADMIN READ }
+
+========================================
+3) Contracts (Foundry)
+========================================
+• CarbonCredit1155 (ERC-1155-like) with:
+  - mint(to, tokenId, amount)
+  - burn(from, tokenId, amount)
+  - provenance: originClassId (string) stored in mapping tokenId→classId (optional)
+• EvidenceAnchor:
+  - anchor(bytes32 hash, string uri)
+
+Outputs from deployment:
+contracts/addresses.json:
+{
+  "chainId": 31337,
+  "rpcUrl": "http://127.0.0.1:8545",
+  "CarbonCredit1155": "0x...",
+  "EvidenceAnchor": "0x...",
+  "deployer": "0x..."
+}
+
+========================================
+4) API Design (NestJS or Express+Zod)
+========================================
+Base URL: http://localhost:4000/api
+
+Auth (simple for class):
+• POST /auth/login  {email, password} → {token}
+• Use Bearer JWT for org-scoped actions
+
+Projects & Evidence:
+• POST /projects         {code, type, metadata?}
+• POST /projects/:id/evidence (multipart)  → stores file in ./var/evidence, hashes it (sha256), returns {sha256, uri}
+• GET  /projects/:id     (with evidence list)
+
+Issuance (CreditClass):
+• POST /classes          {projectId, vintage, quantity} → allocates serial range [1..quantity], returns {classId, serialBase, serialTop}
+• POST /classes/:id/finalize  → optional on-chain mint via /chain/mint
+
+Holdings & Transfers:
+• GET  /holdings?orgId=...
+• POST /transfers        {fromOrgId, toOrgId, classId, quantity} → updates holdings
+
+Retirement:
+• POST /retirements      {orgId, classId, quantity, purposeHash, beneficiaryHash}
+  - Allocates serial window, decrements holdings, creates {certificateId}, optional /chain/burn
+• GET  /retirements/:certificateId
+
+Chain operations (Adapter folded into API):
+• POST /chain/mint       {classId} → maps classId→tokenId (deterministic or stored), mints total supply to issuer wallet; returns {txHash, tokenId}
+• POST /chain/burn       {classId, amount, fromWallet?} → burns and returns {txHash}
+• POST /chain/anchor     {hash, uri} → EvidenceAnchor.anchor; returns {txHash}
+
+Explorer feeds:
+• GET /explorer/credits  → list projects, classes, retirements
+• GET /explorer/tokens   → list tokenIds, mints/burns
+• GET /explorer/anchors  → list anchored hashes
+
+Health:
+• GET /health  → { ok: true }
+
+========================================
+5) UI Design (Next.js 15, App Router)
+========================================
+Routes:
+• /                → Service Hub (cards linking to each feature; shows health statuses)
+• /projects        → CRUD project; upload evidence
+• /issuance        → Create & finalize class (vintage, quantity); shows serial range
+• /transfer        → Transfer credits IssuerCo → BuyerCo
+• /retire          → Retire credits; generate certificate (printable PDF)
+• /explorer        → Tabs: Credits | Tokens | Anchors
+   - Credits: Projects, Classes, Retirements (with certificate viewer)
+   - Tokens: tokenId list, recent mints/burns (link to block explorer if available)
+   - Anchors: anchored hashes and URIs
+• /admin           → Seed demo data, run smoke checks, reset demo
+• /login           → basic auth
+
+UI Components:
+• AuthorityBanner (“Source of Record: Registry / Chain / Evidence”)
+• ProvenancePill (classId, serials; tokenId + txHash link when present)
+• CertificateViewer (renders by certificateId; shows serial range + hashes)
+• HealthRow (shows api/db/chain/ipfs status)
+
+Theme:
+• Registry (green), Tokens (purple), Evidence (blue)
+
+========================================
+6) Deterministic Mapping (classId → tokenId)
+========================================
+Algorithm:
+• tokenId = int(hash(classId) mod 2^31-1) or a simple incremental counter stored in DB
+• Store mapping in DB table ClassTokenMap {classId, tokenId}
+• On /chain/mint: if missing, create mapping, then mint
+
+========================================
+7) Seed Script (scripts/seed.ts)
+========================================
+Steps:
+1) Create orgs: AdminOrg (ADMIN), VerifierOrg (VERIFIER), IssuerCo (ISSUER), BuyerCo (BUYER)
+2) Users with default passwords
+3) Project PRJ-WIND-001 (windfarm); attach one evidence artifact (sample.pdf)
+4) Class: vintage 2024, quantity: 10000; finalize
+5) Mint tokens for classId (optional but enabled by default)
+6) Transfer 300 credits IssuerCo → BuyerCo
+7) Retire 150 credits from BuyerCo; generate certificate PDF in ./var/certificates
+8) IoT: generate “yesterday” digest (random data via carbon-conversion-lib), anchor hash; store anchor tx
+
+Outputs:
+• Console summary: URLs & important IDs
+• Ability to re-run idempotently; skip if exists
+
+========================================
+8) Smoke Script (scripts/smoke.ts)
+========================================
+Assertions:
+• Registry totals: issued ≥ 10000; retired ≥ 150
+• Holdings: BuyerCo ≥ 150 (after retirement)
+• Class has tokenId mapping; at least one mint tx recorded
+• At least one anchor tx recorded
+• API /health returns ok; DB reachable; chain reachable
+
+========================================
+9) Local Setup (No Docker)
+========================================
+Prereqs:
+• Node 20+ (use nvm); pnpm: `corepack enable && corepack prepare pnpm@9 --activate`
+• Postgres 15+ (local): create db `carbon_classroom`, user `postgres/postgres` (or update .env)
+• Foundry (Anvil): https://book.getfoundry.sh/getting-started/installation
+• Optional: IPFS Kubo (mac: `brew install ipfs`; linux: download from dist)
+
+Start order (new terminal per process):
+1) Postgres running (service)
+2) Anvil: `anvil --block-time 1`
+3) (Optional) IPFS: `ipfs daemon`
+4) API:
+   - `cp .env.example .env` (root & apps/api)
+   - `pnpm i`
+   - `pnpm prisma migrate dev`
+   - `pnpm --filter apps/api dev`  → http://localhost:4000
+5) UI:
+   - `pnpm --filter apps/ui dev`   → http://localhost:3000
+6) Seed:
+   - `pnpm tsx scripts/seed.ts`
+7) Smoke:
+   - `pnpm tsx scripts/smoke.ts`
+
+.ENV (root example):
+DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/carbon_classroom
+RPC_URL=http://127.0.0.1:8545
+CHAIN_ID=31337
+IPFS_API=http://127.0.0.1:5001
+FILES_DIR=./var/evidence
+CERTS_DIR=./var/certificates
+JWT_SECRET=dev_secret
+
+========================================
+10) Implementation Notes
+========================================
+• Keep controller handlers thin; use services + repositories; validate with zod.
+• Use `Idempotency-Key` header in finalize & retire endpoints to avoid duplicates.
+• Evidence: write file to FILES_DIR, compute sha256; if IPFS is online, pin & store both URI and sha256.
+• Certificates: render HTML → PDF (e.g., chrome-puppeteer or pdf-lib) into CERTS_DIR; include big watermark “CREDIT — OFF-CHAIN (Registry)”. 
+• Chain: API signs tx with a dedicated local private key stored in .env (classroom use only). Display txHash in UI with a link to a local tx viewer (build a simple page that calls RPC `eth_getTransactionByHash`).
+
+========================================
+11) Service Hub Page (UI /)
+========================================
+Cards (show green checks when healthy):
+• Registry API (http://localhost:4000/health)
+• DB (API-probed)
+• Chain (RPC probe)
+• Evidence storage (FILES_DIR exists)
+• IPFS (if enabled)
+• Actions:
+  - “Create Project & Evidence”
+  - “Issue Credits (Class)” & “Finalize” (with optional Mint)
+  - “Transfer (Purchase)”
+  - “Retire → Certificate”
+  - “Anchor IoT Digest”
+  - “Open Explorer (Credits | Tokens | Anchors)”
+  - “Seed demo data” / “Run smoke checks”
+
+========================================
+12) Acceptance Criteria
+========================================
+• From a clean clone with prereqs installed, I can:
+  1) Run Postgres + Anvil (and optionally IPFS)
+  2) Start API and UI
+  3) Click through the Service Hub → execute: project + evidence → issuance finalize → transfer → retire → view certificate; optionally anchor a digest and see tx
+  4) Use Explorer tab to see credits & tokens with correct provenance labels
+• All endpoints respond within < 300ms locally; memory stays stable; no Docker required.
+
+========================================
+13) Stretch (Optional)
+========================================
+• Add a “Custodial Wallet” mode in UI for simple token demos (derive private keys from seed words in dev).
+• Add CSV export for classes/retirements.
+• Add a tiny `/admin/flags` page to toggle “Tokens / Evidence / IoT” features at runtime.
+
+— End of Classroom Prompt —

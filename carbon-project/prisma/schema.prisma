@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrgRole {
+  ADMIN
+  ISSUER
+  VERIFIER
+  BUYER
+}
+
+enum UserRole {
+  ADMIN
+  ORG_ADMIN
+  READ
+}
+
+model Org {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  role        OrgRole
+  users       User[]
+  holdings    Holding[]
+  retirements Retirement[]
+  transfersFrom Transfer[] @relation("FromOrg")
+  transfersTo   Transfer[] @relation("ToOrg")
+  projects    Project[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  orgId     String
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  role      UserRole
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String            @id @default(cuid())
+  code        String            @unique
+  type        String
+  orgId       String
+  org         Org               @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  metadata    Json              @default("{}")
+  evidence    EvidenceArtifact[]
+  classes     CreditClass[]
+  createdAt   DateTime          @default(now())
+}
+
+model EvidenceArtifact {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sha256    String   @unique
+  bytes     Int
+  uri       String
+  createdAt DateTime @default(now())
+}
+
+model CreditClass {
+  id         String     @id @default(cuid())
+  projectId  String
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  vintage    Int
+  quantity   Int
+  serialBase Int
+  serialTop  Int
+  tokenId    Int?
+  holdings   Holding[]
+  transfers  Transfer[]
+  retirements Retirement[]
+  mints      TokenMint[]
+  createdAt  DateTime   @default(now())
+}
+
+model Holding {
+  id        String      @id @default(cuid())
+  orgId     String
+  org       Org         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  classId   String
+  class     CreditClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  quantity  Int
+  updatedAt DateTime    @updatedAt
+
+  @@unique([orgId, classId])
+}
+
+model Transfer {
+  id        String      @id @default(cuid())
+  fromOrgId String
+  fromOrg   Org         @relation("FromOrg", fields: [fromOrgId], references: [id])
+  toOrgId   String
+  toOrg     Org         @relation("ToOrg", fields: [toOrgId], references: [id])
+  classId   String
+  class     CreditClass @relation(fields: [classId], references: [id])
+  quantity  Int
+  createdAt DateTime    @default(now())
+}
+
+model Retirement {
+  id             String   @id @default(cuid())
+  orgId          String
+  org            Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  classId        String
+  class          CreditClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  quantity       Int
+  serialStart    Int
+  serialEnd      Int
+  purposeHash    String
+  beneficiaryHash String
+  certificateId  String   @unique
+  chainBurnTx   String?
+  createdAt      DateTime @default(now())
+}
+
+model TokenMint {
+  id        String      @id @default(cuid())
+  classId   String
+  class     CreditClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  tokenId   Int
+  txHash    String
+  chainId   Int
+  createdAt DateTime    @default(now())
+}
+
+model EvidenceAnchor {
+  id        String   @id @default(cuid())
+  hash      String   @unique
+  uri       String
+  txHash    String?
+  chainId   Int?
+  createdAt DateTime @default(now())
+}
+

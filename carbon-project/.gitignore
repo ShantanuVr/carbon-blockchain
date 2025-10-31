@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Database
+prisma/migrations/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Variables
+var/evidence/*
+var/certificates/*
+!var/evidence/.gitkeep
+!var/certificates/.gitkeep
+
+# Foundry
+cache/
+broadcast/
+contracts/addresses.json
+
+# Testing
+coverage/
+

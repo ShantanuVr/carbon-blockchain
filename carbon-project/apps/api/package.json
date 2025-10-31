@@ -1,0 +1,44 @@
+{
+  "name": "@carbon-classroom/api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "prisma:generate": "prisma generate --schema=./prisma/schema-new.prisma",
+    "prisma:migrate": "prisma migrate dev --schema=./prisma/schema-new.prisma",
+    "prisma:studio": "prisma studio --schema=./prisma/schema-new.prisma",
+    "db:generate": "prisma generate --schema=./prisma/schema-new.prisma",
+    "db:migrate": "prisma migrate dev --schema=./prisma/schema-new.prisma"
+  },
+  "dependencies": {
+    "@carbon-classroom/carbon-conversion": "workspace:*",
+    "@carbon-classroom/shared-types": "workspace:*",
+    "@nestjs/common": "^10.3.0",
+    "@nestjs/core": "^10.3.0",
+    "@nestjs/jwt": "^10.2.0",
+    "@nestjs/passport": "^10.0.3",
+    "@nestjs/platform-express": "^10.3.0",
+    "@prisma/client": "^5.9.0",
+    "bcrypt": "^5.1.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "ethers": "^6.9.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.2.1",
+    "@nestjs/schematics": "^10.0.3",
+    "@types/bcrypt": "^5.0.2",
+    "@types/busboy": "^1.5.4",
+    "@types/node": "^20.11.0",
+    "@types/passport-jwt": "^4.0.1",
+    "prisma": "^5.9.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}

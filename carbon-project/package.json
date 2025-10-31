@@ -1,0 +1,26 @@
+{
+  "name": "carbon-classroom",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:api": "pnpm --filter @carbon-classroom/api dev",
+    "dev:ui": "pnpm --filter @carbon-classroom/ui dev",
+    "build": "pnpm -r build",
+    "db:migrate": "pnpm --filter @carbon-classroom/api prisma:migrate",
+    "db:generate": "pnpm --filter @carbon-classroom/api prisma:generate",
+    "seed": "tsx scripts/seed.ts",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "@prisma/client": "^5.9.0",
+    "bcrypt": "^5.1.1"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
+
