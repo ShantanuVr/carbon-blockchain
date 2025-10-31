@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { CreateRetirementDto } from '@carbon-classroom/shared-types';
+import { RegistryAdapterService } from '../chain/registry-adapter.service';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class RetirementsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private registryAdapter: RegistryAdapterService,
+  ) {}
 
   async create(dto: CreateRetirementDto) {
     // Get class to determine serial range
@@ -47,6 +51,24 @@ export class RetirementsService {
       where: { orgId: dto.orgId, classId: dto.classId },
       data: { quantity: { decrement: dto.quantity } },
     });
+
+    // Burn tokens on-chain if wallet address provided
+    if (dto.walletAddress) {
+      try {
+        const result = await this.registryAdapter.burnOnRetirement(
+          retirement.id,
+          dto.walletAddress,
+        );
+        return {
+          ...retirement,
+          chainBurnTx: result.txHash,
+          certificate: result.certificate,
+        };
+      } catch (error) {
+        console.warn('On-chain burn failed, keeping off-chain retirement:', error);
+        // Continue with off-chain retirement only
+      }
+    }
 
     return retirement;
   }

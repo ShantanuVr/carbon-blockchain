@@ -102,6 +102,7 @@ export const CreateRetirementSchema = z.object({
   quantity: z.number().int().positive(),
   purposeHash: z.string(),
   beneficiaryHash: z.string(),
+  walletAddress: z.string().optional(),
 });
 
 export type CreateRetirementDto = z.infer<typeof CreateRetirementSchema>;
@@ -125,6 +126,8 @@ export type Retirement = z.infer<typeof RetirementSchema>;
 // Chain operations
 export const MintRequestSchema = z.object({
   classId: z.string(),
+  toAddress: z.string().optional(),
+  amount: z.number().int().positive().optional(),
 });
 
 export type MintRequest = z.infer<typeof MintRequestSchema>;

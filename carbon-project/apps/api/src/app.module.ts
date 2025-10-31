@@ -6,6 +6,7 @@ import { TransfersModule } from './transfers/transfers.module';
 import { RetirementsModule } from './retirements/retirements.module';
 import { ChainModule } from './chain/chain.module';
 import { ExplorerModule } from './explorer/explorer.module';
+import { CertificatesModule } from './certificates/certificates.module';
 import { HealthModule } from './common/health/health.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { HealthModule } from './common/health/health.module';
     RetirementsModule,
     ChainModule,
     ExplorerModule,
+    CertificatesModule,
     HealthModule,
   ],
 })

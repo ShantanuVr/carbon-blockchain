@@ -10,7 +10,7 @@ export class ChainController {
   @UseJwtAuth()
   @Post('mint')
   async mint(@Body() dto: MintRequest) {
-    return this.chainService.mint(dto.classId);
+    return this.chainService.mint(dto.classId, dto.toAddress || process.env.DEFAULT_MINT_ADDRESS || '0x0000000000000000000000000000000000000000', dto.amount || 0);
   }
 
   @UseJwtAuth()
