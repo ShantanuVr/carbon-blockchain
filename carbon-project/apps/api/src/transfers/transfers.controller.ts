@@ -13,11 +13,6 @@ export class TransfersController {
     return this.transfersService.create(dto);
   }
 
-  @Get('holdings')
-  async getHoldings(@Query('orgId') orgId?: string) {
-    return this.transfersService.getHoldings(orgId);
-  }
-
   @Get()
   async getAllTransfers() {
     return this.transfersService.getAllTransfers();

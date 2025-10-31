@@ -12,6 +12,16 @@ export class RetirementsService {
   ) {}
 
   async create(dto: CreateRetirementDto) {
+    // Validate: check if org has sufficient holdings
+    const holding = await this.prisma.holding.findUnique({
+      where: { orgId_classId: { orgId: dto.orgId, classId: dto.classId } },
+    });
+
+    const availableQuantity = holding?.quantity || 0;
+    if (availableQuantity < dto.quantity) {
+      throw new Error(`Insufficient holdings for retirement. Available: ${availableQuantity}, Requested: ${dto.quantity}`);
+    }
+
     // Get class to determine serial range
     const creditClass = await this.prisma.creditClass.findUnique({
       where: { id: dto.classId },
@@ -26,31 +36,42 @@ export class RetirementsService {
     const serialEnd = serialStart + dto.quantity - 1;
 
     if (serialEnd > creditClass.serialTop) {
-      throw new Error('Insufficient credits available');
+      throw new Error('Insufficient credits available in serial range');
     }
 
     // Generate certificate ID
     const certificateId = `CERT-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
-    // Create retirement
-    const retirement = await this.prisma.retirement.create({
-      data: {
-        orgId: dto.orgId,
-        classId: dto.classId,
-        quantity: dto.quantity,
-        serialStart,
-        serialEnd,
-        purposeHash: dto.purposeHash,
-        beneficiaryHash: dto.beneficiaryHash,
-        certificateId,
-      },
-    });
+    // Use transaction to ensure atomicity
+    return await this.prisma.$transaction(async (tx) => {
+      // Create retirement
+      const retirement = await tx.retirement.create({
+        data: {
+          orgId: dto.orgId,
+          classId: dto.classId,
+          quantity: dto.quantity,
+          serialStart,
+          serialEnd,
+          purposeHash: dto.purposeHash,
+          beneficiaryHash: dto.beneficiaryHash,
+          certificateId,
+        },
+      });
 
-    // Decrement holdings
-    await this.prisma.holding.updateMany({
-      where: { orgId: dto.orgId, classId: dto.classId },
-      data: { quantity: { decrement: dto.quantity } },
-    });
+      // Decrement holdings
+      await tx.holding.updateMany({
+        where: { orgId: dto.orgId, classId: dto.classId },
+        data: { quantity: { decrement: dto.quantity } },
+      });
+
+      // Verify holdings didn't go negative
+      const updatedHolding = await tx.holding.findUnique({
+        where: { orgId_classId: { orgId: dto.orgId, classId: dto.classId } },
+      });
+
+      if (updatedHolding && updatedHolding.quantity < 0) {
+        throw new Error('Retirement would result in negative holdings');
+      }
 
     // Burn tokens on-chain if wallet address provided
     if (dto.walletAddress) {
