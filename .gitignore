@@ -37,3 +37,11 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# Local env files
+.env
+.env.local
+
+# Keep Next.js UI source that lives under src/lib (root lib/ is for Python)
+!carbon-project/apps/ui/src/lib/
+!carbon-project/apps/ui/src/lib/**
+

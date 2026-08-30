@@ -98,15 +98,16 @@ model Holding {
 }
 
 model Transfer {
-  id        String      @id @default(cuid())
-  fromOrgId String
-  fromOrg   Org         @relation("FromOrg", fields: [fromOrgId], references: [id])
-  toOrgId   String
-  toOrg     Org         @relation("ToOrg", fields: [toOrgId], references: [id])
-  classId   String
-  class     CreditClass @relation(fields: [classId], references: [id])
-  quantity  Int
-  createdAt DateTime    @default(now())
+  id              String      @id @default(cuid())
+  fromOrgId       String
+  fromOrg         Org         @relation("FromOrg", fields: [fromOrgId], references: [id])
+  toOrgId         String
+  toOrg           Org         @relation("ToOrg", fields: [toOrgId], references: [id])
+  classId         String
+  class           CreditClass @relation(fields: [classId], references: [id])
+  quantity        Int
+  chainTransferTx String?
+  createdAt       DateTime    @default(now())
 }
 
 model Retirement {

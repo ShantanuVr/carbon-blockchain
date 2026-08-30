@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { TransfersService } from './transfers.service';
 import { CreateTransferDto } from '@carbon-classroom/shared-types';
 import { UseJwtAuth } from '../common/jwt-auth.guard';
-import { OrgAuthGuard, RequireOrgAuth } from '../common/org-auth.guard';
+import { OrgAuthGuard } from '../common/org-auth.guard';
+import { RequireOrgAuth } from '../common/org-auth.decorator';
 
 @Controller('transfers')
 export class TransfersController {

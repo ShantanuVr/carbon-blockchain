@@ -2,7 +2,8 @@ import { Controller, Get, Post, Param, Body, Query, UseGuards } from '@nestjs/co
 import { RetirementsService } from './retirements.service';
 import { CreateRetirementDto } from '@carbon-classroom/shared-types';
 import { UseJwtAuth } from '../common/jwt-auth.guard';
-import { OrgAuthGuard, RequireOrgAuth } from '../common/org-auth.guard';
+import { OrgAuthGuard } from '../common/org-auth.guard';
+import { RequireOrgAuth } from '../common/org-auth.decorator';
 
 @Controller('retirements')
 export class RetirementsController {
