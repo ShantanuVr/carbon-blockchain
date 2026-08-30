@@ -22,7 +22,7 @@ export default function IssuancePage() {
   const fetchData = async () => {
     try {
       const [projectsRes, classesRes] = await Promise.all([
-        api.get('/projects/list'),
+        api.get('/projects'),
         api.get('/classes'),
       ]);
       setProjects(projectsRes.data);

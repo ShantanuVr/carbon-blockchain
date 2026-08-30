@@ -19,8 +19,13 @@ export class ProjectsController {
     return this.projectsService.create(dto, orgId);
   }
 
-  @Get('list')
+  @Get()
   async findAll() {
+    return this.projectsService.findAll();
+  }
+
+  @Get('list')
+  async findAllAlias() {
     return this.projectsService.findAll();
   }
 

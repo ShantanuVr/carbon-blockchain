@@ -19,7 +19,7 @@ export default function ProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const res = await api.get('/projects/list');
+      const res = await api.get('/projects');
       setProjects(res.data);
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -34,15 +34,16 @@ export default function ProjectsPage() {
     const formData = new FormData(e.currentTarget);
     
     try {
-      const res = await api.post('/projects', {
+      await api.post('/projects', {
         code: formData.get('code'),
         type: formData.get('type'),
         metadata: {},
       });
-      alert('Project created!');
       e.currentTarget.reset();
+      await fetchProjects();
     } catch (error: any) {
-      alert('Error: ' + (error.response?.data?.message || error.message));
+      const message = error.response?.data?.message || error.message;
+      alert(Array.isArray(message) ? message.join(', ') : message);
     }
   };
 
@@ -61,7 +62,7 @@ export default function ProjectsPage() {
                 type="text"
                 required
                 className="w-full px-4 py-2 border rounded"
-                placeholder="PRJ-WIND-001"
+                placeholder="PRJ-SOLAR-003"
               />
             </div>
             <div>

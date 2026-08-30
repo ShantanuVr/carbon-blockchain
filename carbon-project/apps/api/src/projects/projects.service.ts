@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { CreateProjectDto } from '@carbon-classroom/shared-types';
 import * as fs from 'fs/promises';
@@ -10,14 +11,21 @@ export class ProjectsService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateProjectDto, orgId: string) {
-    return this.prisma.project.create({
-      data: {
-        code: dto.code,
-        type: dto.type,
-        metadata: dto.metadata || {},
-        orgId: orgId,
-      },
-    });
+    try {
+      return await this.prisma.project.create({
+        data: {
+          code: dto.code,
+          type: dto.type,
+          metadata: dto.metadata || {},
+          orgId: orgId,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException(`A project with code "${dto.code}" already exists`);
+      }
+      throw error;
+    }
   }
 
   async findAll() {
