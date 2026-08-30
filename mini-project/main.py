@@ -13,6 +13,11 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
+def json_body():
+    values = request.get_json(silent=True)
+    return values if isinstance(values, dict) else None
+
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
@@ -65,7 +70,9 @@ def issue_credits():
     Required: recipient, credits, project_type
     Optional: description
     """
-    values = request.get_json()
+    values = json_body()
+    if values is None:
+        return jsonify({'error': 'JSON body required'}), 400
     required = ['recipient', 'credits', 'project_type']
     
     if not all(k in values for k in required):
@@ -103,7 +110,9 @@ def transfer_credits():
     Required: sender, recipient, credits
     Optional: project_type, description
     """
-    values = request.get_json()
+    values = json_body()
+    if values is None:
+        return jsonify({'error': 'JSON body required'}), 400
     required = ['sender', 'recipient', 'credits']
     
     if not all(k in values for k in required):
@@ -142,7 +151,9 @@ def retire_credits():
     Required: owner, credits
     Optional: reason
     """
-    values = request.get_json()
+    values = json_body()
+    if values is None:
+        return jsonify({'error': 'JSON body required'}), 400
     required = ['owner', 'credits']
     
     if not all(k in values for k in required):
@@ -177,6 +188,7 @@ def full_chain():
     """Get the full blockchain"""
     return jsonify({
         'chain': blockchain.chain,
+        'pending_transactions': blockchain.current_transactions,
         'length': len(blockchain.chain)
     }), 200
 

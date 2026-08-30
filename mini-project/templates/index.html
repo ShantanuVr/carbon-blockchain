@@ -135,6 +135,12 @@
             transform: translateY(0);
         }
 
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .retire-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
@@ -242,79 +248,91 @@
         <div class="actions-grid">
             <div class="action-card">
                 <h3>Issue Credits</h3>
-                <div id="issueMessage"></div>
-                <div class="form-group">
-                    <label>Recipient</label>
-                    <input type="text" id="issueRecipient" placeholder="e.g., green_energy_corp">
-                </div>
-                <div class="form-group">
-                    <label>Credits (tonnes CO2e)</label>
-                    <input type="number" id="issueCredits" placeholder="500" min="0.01" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Project Type</label>
-                    <select id="issueProjectType">
-                        <option value="renewable_energy">Renewable Energy</option>
-                        <option value="reforestation">Reforestation</option>
-                        <option value="carbon_capture">Carbon Capture</option>
-                        <option value="energy_efficiency">Energy Efficiency</option>
-                        <option value="waste_management">Waste Management</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description (optional)</label>
-                    <textarea id="issueDescription" rows="2" placeholder="Project description"></textarea>
-                </div>
-                <button onclick="issueCredits()">Issue Credits</button>
+                <div id="issueMessage" class="message"></div>
+                <form id="issueForm">
+                    <div class="form-group">
+                        <label for="issueRecipient">Recipient</label>
+                        <input type="text" id="issueRecipient" name="recipient" placeholder="e.g., green_energy_corp" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="issueCredits">Credits (tonnes CO2e)</label>
+                        <input type="number" id="issueCredits" name="credits" placeholder="500" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="issueProjectType">Project Type</label>
+                        <select id="issueProjectType" name="project_type">
+                            <option value="renewable_energy">Renewable Energy</option>
+                            <option value="reforestation">Reforestation</option>
+                            <option value="carbon_capture">Carbon Capture</option>
+                            <option value="energy_efficiency">Energy Efficiency</option>
+                            <option value="waste_management">Waste Management</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="issueDescription">Description (optional)</label>
+                        <textarea id="issueDescription" name="description" rows="2" placeholder="Project description"></textarea>
+                    </div>
+                    <button type="submit" id="issueBtn">Issue Credits</button>
+                </form>
             </div>
 
             <div class="action-card">
                 <h3>Transfer Credits</h3>
-                <div id="transferMessage"></div>
-                <div class="form-group">
-                    <label>Sender</label>
-                    <input type="text" id="transferSender" placeholder="e.g., green_energy_corp">
-                </div>
-                <div class="form-group">
-                    <label>Recipient</label>
-                    <input type="text" id="transferRecipient" placeholder="e.g., eco_retailer">
-                </div>
-                <div class="form-group">
-                    <label>Credits (tonnes CO2e)</label>
-                    <input type="number" id="transferCredits" placeholder="100" min="0.01" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Description (optional)</label>
-                    <textarea id="transferDescription" rows="2" placeholder="Transaction description"></textarea>
-                </div>
-                <button onclick="transferCredits()">Transfer Credits</button>
+                <div id="transferMessage" class="message"></div>
+                <form id="transferForm">
+                    <div class="form-group">
+                        <label for="transferSender">Sender</label>
+                        <input type="text" id="transferSender" name="sender" placeholder="e.g., green_energy_corp" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transferRecipient">Recipient</label>
+                        <input type="text" id="transferRecipient" name="recipient" placeholder="e.g., eco_retailer" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transferCredits">Credits (tonnes CO2e)</label>
+                        <input type="number" id="transferCredits" name="credits" placeholder="100" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transferDescription">Description (optional)</label>
+                        <textarea id="transferDescription" name="description" rows="2" placeholder="Transaction description"></textarea>
+                    </div>
+                    <button type="submit" id="transferBtn">Transfer Credits</button>
+                </form>
             </div>
 
             <div class="action-card">
                 <h3>Retire Credits</h3>
-                <div id="retireMessage"></div>
-                <div class="form-group">
-                    <label>Owner</label>
-                    <input type="text" id="retireOwner" placeholder="e.g., eco_retailer">
-                </div>
-                <div class="form-group">
-                    <label>Credits to Retire (tonnes CO2e)</label>
-                    <input type="number" id="retireCredits" placeholder="50" min="0.01" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Reason</label>
-                    <textarea id="retireReason" rows="2" placeholder="e.g., Offset 2024 company emissions"></textarea>
-                </div>
-                <button class="retire-btn" onclick="retireCredits()">Retire (Burn) Credits</button>
+                <div id="retireMessage" class="message"></div>
+                <form id="retireForm">
+                    <div class="form-group">
+                        <label for="retireOwner">Owner</label>
+                        <input type="text" id="retireOwner" name="owner" placeholder="e.g., eco_retailer" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="retireCredits">Credits to Retire (tonnes CO2e)</label>
+                        <input type="number" id="retireCredits" name="credits" placeholder="50" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="retireReason">Reason</label>
+                        <textarea id="retireReason" name="reason" rows="2" placeholder="e.g., Offset 2024 company emissions"></textarea>
+                    </div>
+                    <button type="submit" class="retire-btn" id="retireBtn">Retire (Burn) Credits</button>
+                </form>
             </div>
         </div>
 
         <div class="actions-grid">
             <div class="action-card">
                 <h3>Blockchain Actions</h3>
-                <button class="refresh-btn" onclick="loadChain()">🔄 Refresh Blockchain</button>
-                <button onclick="validateBlock()">⛏️ Validate Block (Mine)</button>
+                <div id="validateMessage" class="message"></div>
+                <button type="button" class="refresh-btn" id="refreshBtn">Refresh Blockchain</button>
+                <button type="button" id="validateBtn">Validate Block (Mine)</button>
             </div>
+        </div>
+
+        <div class="chain-section" id="pendingSection" style="display: none; margin-bottom: 20px;">
+            <h3>Pending Transactions (not yet mined)</h3>
+            <div id="pendingDisplay"></div>
         </div>
 
         <div class="chain-section">
@@ -324,13 +342,66 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5001';
+        const API_URL = (window.location.protocol === 'http:' || window.location.protocol === 'https:')
+            ? window.location.origin
+            : 'http://127.0.0.1:5001';
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function transactionType(transaction) {
+            const description = (transaction.description || '').toLowerCase();
+            if (transaction.sender === '0') {
+                return 'issued';
+            }
+            if (description.includes('retired') || transaction.recipient === 'BURN') {
+                return 'retired';
+            }
+            return 'transfer';
+        }
+
+        function renderTransaction(transaction) {
+            const txDiv = document.createElement('div');
+            const txType = transactionType(transaction);
+            txDiv.className = `transaction ${txType}`;
+
+            const credits = escapeHtml(transaction.credits);
+            const recipient = escapeHtml(transaction.recipient);
+            const sender = escapeHtml(transaction.sender);
+            const projectType = escapeHtml(transaction.project_type || 'N/A');
+            const description = escapeHtml(transaction.description || '');
+
+            if (txType === 'issued') {
+                txDiv.innerHTML = `
+                    <strong>ISSUED:</strong> ${credits} credits to ${recipient}<br>
+                    <small>Project: ${projectType}</small><br>
+                    <small>${description}</small>
+                `;
+            } else if (txType === 'retired') {
+                txDiv.innerHTML = `
+                    <strong>RETIRED:</strong> ${credits} credits from ${sender}<br>
+                    <small>${description}</small>
+                `;
+            } else {
+                txDiv.innerHTML = `
+                    <strong>TRANSFER:</strong> ${credits} credits<br>
+                    From: ${sender} → To: ${recipient}<br>
+                    <small>${description}</small>
+                `;
+            }
+            return txDiv;
+        }
 
         async function loadStats() {
             try {
                 const response = await fetch(`${API_URL}/stats`);
                 const data = await response.json();
-                
+
                 document.getElementById('totalBlocks').textContent = data.total_blocks || 0;
                 document.getElementById('totalCredits').textContent = data.total_credits_issued || 0;
                 document.getElementById('totalTransactions').textContent = data.total_transactions || 0;
@@ -340,214 +411,250 @@
             }
         }
 
+        function renderPending(pending) {
+            const pendingSection = document.getElementById('pendingSection');
+            const pendingDisplay = document.getElementById('pendingDisplay');
+            pendingDisplay.innerHTML = '';
+
+            if (!pending || pending.length === 0) {
+                pendingSection.style.display = 'none';
+                return;
+            }
+
+            pendingSection.style.display = 'block';
+            pending.forEach((transaction) => {
+                pendingDisplay.appendChild(renderTransaction(transaction));
+            });
+        }
+
         async function loadChain() {
             try {
                 const response = await fetch(`${API_URL}/chain`);
                 const data = await response.json();
-                
+                renderPending(data.pending_transactions || []);
+
                 const chainDisplay = document.getElementById('chainDisplay');
                 chainDisplay.innerHTML = '';
-                
-                data.chain.forEach((block, index) => {
+
+                (data.chain || []).forEach((block) => {
                     const blockDiv = document.createElement('div');
                     blockDiv.className = 'block';
-                    
+
                     const blockHeader = document.createElement('div');
                     blockHeader.className = 'block-header';
                     blockHeader.innerHTML = `
-                        <span>Block #${block.index}</span>
-                        <span>Proof: ${block.proof}</span>
+                        <span>Block #${escapeHtml(block.index)}</span>
+                        <span>Proof: ${escapeHtml(block.proof)}</span>
                     `;
                     blockDiv.appendChild(blockHeader);
-                    
+
                     const transactionsDiv = document.createElement('div');
-                    block.transactions.forEach(transaction => {
-                        const txDiv = document.createElement('div');
-                        const txType = transaction.sender === '0' ? 'issued' : 
-                                      transaction.description?.toLowerCase().includes('retired') ? 'retired' : 'transfer';
-                        txDiv.className = `transaction ${txType}`;
-                        
-                        let txContent = '';
-                        if (transaction.sender === '0') {
-                            txContent = `
-                                <strong>🆕 ISSUED:</strong> ${transaction.credits} credits to ${transaction.recipient}<br>
-                                <small>Project: ${transaction.project_type || 'N/A'}</small><br>
-                                <small>${transaction.description || ''}</small>
-                            `;
-                        } else if (txType === 'retired') {
-                            txContent = `
-                                <strong>🔥 RETIRED:</strong> ${transaction.credits} credits from ${transaction.sender}<br>
-                                <small>${transaction.description || ''}</small>
-                            `;
-                        } else {
-                            txContent = `
-                                <strong>💱 TRANSFER:</strong> ${transaction.credits} credits<br>
-                                From: ${transaction.sender} → To: ${transaction.recipient}<br>
-                                <small>${transaction.description || ''}</small>
-                            `;
-                        }
-                        txDiv.innerHTML = txContent;
-                        transactionsDiv.appendChild(txDiv);
+                    const transactions = block.transactions || [];
+                    transactions.forEach((transaction) => {
+                        transactionsDiv.appendChild(renderTransaction(transaction));
                     });
-                    
-                    if (block.transactions.length === 0) {
+
+                    if (transactions.length === 0) {
                         const emptyTx = document.createElement('div');
                         emptyTx.className = 'transaction';
                         emptyTx.textContent = 'Genesis Block';
                         transactionsDiv.appendChild(emptyTx);
                     }
-                    
+
                     blockDiv.appendChild(transactionsDiv);
-                    
+
                     const hashDiv = document.createElement('div');
                     hashDiv.style.marginTop = '10px';
                     hashDiv.style.fontSize = '12px';
                     hashDiv.style.color = '#666';
                     hashDiv.textContent = `Hash: ${block.previous_hash || 'N/A'}`;
                     blockDiv.appendChild(hashDiv);
-                    
+
                     chainDisplay.appendChild(blockDiv);
                 });
             } catch (error) {
                 console.error('Error loading chain:', error);
-                showMessage('chainMessage', 'Error loading blockchain', 'error');
             }
         }
 
+        async function postJson(path, body) {
+            const response = await fetch(`${API_URL}${path}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = { error: 'Server returned a non-JSON response' };
+            }
+            return { response, data };
+        }
+
         async function issueCredits() {
-            const recipient = document.getElementById('issueRecipient').value;
+            const recipient = document.getElementById('issueRecipient').value.trim();
             const credits = parseFloat(document.getElementById('issueCredits').value);
             const projectType = document.getElementById('issueProjectType').value;
-            const description = document.getElementById('issueDescription').value;
+            const description = document.getElementById('issueDescription').value.trim();
 
             if (!recipient || !credits || credits <= 0) {
                 showMessage('issueMessage', 'Please fill all required fields', 'error');
                 return;
             }
 
+            const button = document.getElementById('issueBtn');
+            button.disabled = true;
             try {
-                const response = await fetch(`${API_URL}/issue`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ recipient, credits, project_type: projectType, description })
+                const { response, data } = await postJson('/issue', {
+                    recipient,
+                    credits,
+                    project_type: projectType,
+                    description
                 });
-
-                const data = await response.json();
                 if (response.ok) {
                     showMessage('issueMessage', data.message, 'success');
-                    document.getElementById('issueRecipient').value = '';
-                    document.getElementById('issueCredits').value = '';
-                    document.getElementById('issueDescription').value = '';
-                    setTimeout(() => { loadStats(); loadChain(); }, 500);
+                    document.getElementById('issueForm').reset();
+                    await Promise.all([loadStats(), loadChain()]);
                 } else {
                     showMessage('issueMessage', data.error || 'Error issuing credits', 'error');
                 }
             } catch (error) {
                 showMessage('issueMessage', 'Error connecting to server', 'error');
+            } finally {
+                button.disabled = false;
             }
         }
 
         async function transferCredits() {
-            const sender = document.getElementById('transferSender').value;
-            const recipient = document.getElementById('transferRecipient').value;
+            const sender = document.getElementById('transferSender').value.trim();
+            const recipient = document.getElementById('transferRecipient').value.trim();
             const credits = parseFloat(document.getElementById('transferCredits').value);
-            const description = document.getElementById('transferDescription').value;
+            const description = document.getElementById('transferDescription').value.trim();
 
             if (!sender || !recipient || !credits || credits <= 0) {
                 showMessage('transferMessage', 'Please fill all required fields', 'error');
                 return;
             }
 
+            const button = document.getElementById('transferBtn');
+            button.disabled = true;
             try {
-                const response = await fetch(`${API_URL}/transfer`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sender, recipient, credits, description })
+                const { response, data } = await postJson('/transfer', {
+                    sender,
+                    recipient,
+                    credits,
+                    description
                 });
-
-                const data = await response.json();
                 if (response.ok) {
                     showMessage('transferMessage', data.message, 'success');
-                    document.getElementById('transferSender').value = '';
-                    document.getElementById('transferRecipient').value = '';
-                    document.getElementById('transferCredits').value = '';
-                    document.getElementById('transferDescription').value = '';
-                    setTimeout(() => { loadStats(); loadChain(); }, 500);
+                    document.getElementById('transferForm').reset();
+                    await Promise.all([loadStats(), loadChain()]);
                 } else {
                     showMessage('transferMessage', data.error || 'Error transferring credits', 'error');
                 }
             } catch (error) {
                 showMessage('transferMessage', 'Error connecting to server', 'error');
+            } finally {
+                button.disabled = false;
             }
         }
 
         async function retireCredits() {
-            const owner = document.getElementById('retireOwner').value;
+            const owner = document.getElementById('retireOwner').value.trim();
             const credits = parseFloat(document.getElementById('retireCredits').value);
-            const reason = document.getElementById('retireReason').value;
+            const reason = document.getElementById('retireReason').value.trim();
 
             if (!owner || !credits || credits <= 0) {
                 showMessage('retireMessage', 'Please fill all required fields', 'error');
                 return;
             }
 
+            const button = document.getElementById('retireBtn');
+            button.disabled = true;
             try {
-                const response = await fetch(`${API_URL}/retire`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ owner, credits, reason })
+                const { response, data } = await postJson('/retire', {
+                    owner,
+                    credits,
+                    reason
                 });
-
-                const data = await response.json();
                 if (response.ok) {
                     showMessage('retireMessage', data.message, 'success');
-                    document.getElementById('retireOwner').value = '';
-                    document.getElementById('retireCredits').value = '';
-                    document.getElementById('retireReason').value = '';
-                    setTimeout(() => { loadStats(); loadChain(); }, 500);
+                    document.getElementById('retireForm').reset();
+                    await Promise.all([loadStats(), loadChain()]);
                 } else {
                     showMessage('retireMessage', data.error || 'Error retiring credits', 'error');
                 }
             } catch (error) {
                 showMessage('retireMessage', 'Error connecting to server', 'error');
+            } finally {
+                button.disabled = false;
             }
         }
 
         async function validateBlock() {
+            const button = document.getElementById('validateBtn');
+            button.disabled = true;
+            button.textContent = 'Mining...';
             try {
-                const response = await fetch(`${API_URL}/validate`, {
-                    method: 'POST'
-                });
-
-                const data = await response.json();
+                const { response, data } = await postJson('/validate', {});
                 if (response.ok) {
-                    alert(`Block validated!\nProof: ${data.proof}\nTransactions: ${data.transactions.length}`);
-                    loadStats();
-                    loadChain();
+                    showMessage(
+                        'validateMessage',
+                        `Block validated. Proof: ${data.proof}. Transactions: ${(data.transactions || []).length}`,
+                        'success'
+                    );
+                    await Promise.all([loadStats(), loadChain()]);
                 } else {
-                    alert('Error validating block');
+                    showMessage('validateMessage', data.error || 'Error validating block', 'error');
                 }
             } catch (error) {
-                alert('Error connecting to server');
+                showMessage('validateMessage', 'Error connecting to server', 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Validate Block (Mine)';
             }
         }
 
         function showMessage(elementId, message, type) {
             const msgElement = document.getElementById(elementId);
+            if (!msgElement) {
+                return;
+            }
             msgElement.textContent = message;
             msgElement.className = `message ${type}`;
             setTimeout(() => {
                 msgElement.className = 'message';
+                msgElement.textContent = '';
             }, 5000);
         }
 
-        // Load data on page load
+        document.getElementById('issueForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            issueCredits();
+        });
+        document.getElementById('transferForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            transferCredits();
+        });
+        document.getElementById('retireForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            retireCredits();
+        });
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            loadStats();
+            loadChain();
+        });
+        document.getElementById('validateBtn').addEventListener('click', () => {
+            validateBlock();
+        });
+
         loadStats();
         loadChain();
         setInterval(() => {
             loadStats();
             loadChain();
-        }, 10000); // Auto-refresh every 10 seconds
+        }, 10000);
     </script>
 </body>
 </html>
